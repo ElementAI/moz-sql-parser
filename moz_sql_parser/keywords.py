@@ -70,7 +70,8 @@ join_keywords = {
 
 unary_ops = {
     "-": "neg",
-    "~": "binary_not"
+    "~": "binary_not",
+    "distinct": "distinct",
 }
 
 binary_ops = {
