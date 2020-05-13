@@ -18,8 +18,8 @@ from pyparsing import Combine, Forward, Group, Keyword, Literal, Optional, Parse
     alphanums, alphas, delimitedList, infixNotation, opAssoc, restOfLine
 
 from moz_sql_parser.debugs import debug
-from moz_sql_parser.keywords import AND, AS, ASC, BETWEEN, CASE, COLLATE_NOCASE, CROSS_JOIN, DESC, ELSE, END, FROM, \
-    FULL_JOIN, FULL_OUTER_JOIN, GROUP_BY, HAVING, IN, INNER_JOIN, IS, IS_NOT, JOIN, LEFT_JOIN, LEFT_OUTER_JOIN, LIKE, \
+from moz_sql_parser.keywords import AND, AS, ASC, BETWEEN, CASE, COLLATE_NOCASE, CROSS_JOIN, DESC, ELSE, END, EXCEPT, FROM, \
+    FULL_JOIN, FULL_OUTER_JOIN, GROUP_BY, HAVING, IN, INNER_JOIN, INTERSECT, IS, IS_NOT, JOIN, LEFT_JOIN, LEFT_OUTER_JOIN, LIKE, \
     LIMIT, NOT_BETWEEN, NOT_IN, NOT_LIKE, OFFSET, ON, OR, ORDER_BY, RESERVED, RIGHT_JOIN, RIGHT_OUTER_JOIN, SELECT, \
     THEN, UNION, UNION_ALL, USING, WHEN, WHERE, binary_ops, unary_ops, WITH, durations
 
@@ -189,7 +189,13 @@ def to_select_call(instring, tokensStart, retTokens):
 
 def to_union_call(instring, tokensStart, retTokens):
     tok = retTokens[0].asDict()
-    unions = tok['from']['union']
+    if 'union' in tok['from']:
+        unions = tok['from']['union']
+    elif 'intersect' in tok['from']:
+        unions = tok['from']['intersect']
+    elif 'except' in tok['from']:
+        unions = tok['from']['except']
+
     if len(unions) == 1:
         output = unions[0]
     else:
@@ -375,7 +381,7 @@ unordered_sql = Group(
 ordered_sql << Group(
     Group(Group(
         unordered_sql +
-        ZeroOrMore((UNION_ALL | UNION) + unordered_sql)
+        ZeroOrMore((UNION_ALL | UNION | INTERSECT | EXCEPT) + unordered_sql)
     )("union"))("from") +
     Optional(ORDER_BY.suppress().setDebugActions(*debug) + delimitedList(Group(sortColumn))("orderby").setName("orderby")) +
     Optional(LIMIT.suppress().setDebugActions(*debug) + expr("limit")) +

@@ -424,6 +424,29 @@ class TestSimple(TestCase):
         }
         self.assertEqual(result, expected)
 
+    def test_intersect(self):
+        result = parse("SELECT b FROM t6 INTERSECT SELECT '3' AS x ORDER BY x")
+        expected = {
+            "from": {'intersect': [
+                {'from': 't6', 'select': {'value': 'b'}},
+                {'select': {'value': {'literal': '3'}, 'name': 'x'}}
+            ]},
+            'orderby': {"value": 'x'}
+        }
+        self.assertEqual(result, expected)
+
+    def test_except(self):
+        result = parse("SELECT b FROM t6 EXCEPT SELECT '3' AS x ORDER BY x")
+        expected = {
+            "from": {'except': [
+                {'from': 't6', 'select': {'value': 'b'}},
+                {'select': {'value': {'literal': '3'}, 'name': 'x'}}
+            ]},
+            'orderby': {"value": 'x'}
+        }
+        print(result)
+        self.assertEqual(result, expected)
+
     def test_left_outer_join(self):
         result = parse("SELECT t1.field1 FROM t1 LEFT OUTER JOIN t2 ON t1.id = t2.id")
         expected = {'select': {'value': 't1.field1'},
