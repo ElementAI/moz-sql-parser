@@ -66,7 +66,6 @@ def join_field(path):
     # return ".".join([f.replace(".", "\\.") for f in potent])
 
 
-
 def escape(ident, ansi_quotes, should_quote):
     """
     Escape identifiers.
@@ -129,7 +128,8 @@ class Formatter:
     _mod = Operator('%')
     _add = Operator('+')
     _sub = Operator('-')
-    _neq = Operator('<>')
+    # _neq = Operator('<>')
+    _neq = Operator('!=')
     _gt = Operator('>')
     _lt = Operator('<')
     _gte = Operator('>=')
@@ -149,6 +149,10 @@ class Formatter:
             return self.union(json['union'])
         elif 'union_all' in json:
             return self.union_all(json['union_all'])
+        elif 'intersect' in json:
+            return self.intersect(json['intersect'])
+        elif 'except' in json:
+            return self.except_(json['except'])
         else:
             return self.query(json)
 
@@ -286,6 +290,12 @@ class Formatter:
 
     def union_all(self, json):
         return ' UNION ALL '.join(self.query(query) for query in json)
+
+    def intersect(self, json):
+        return ' INTERSECT '.join(self.query(query) for query in json)
+
+    def except_(self, json):
+        return ' EXCEPT '.join(self.query(query) for query in json)
 
     def query(self, json):
         return ' '.join(
